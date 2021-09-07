@@ -1,0 +1,21 @@
+apiVersion: infinispan.org/v1
+kind: Infinispan
+metadata:
+  name: {{ item.clusterName }}
+  namespace: {{ item.namespace }}
+spec:
+  security:
+    endpointAuthentication: false
+  expose:
+      type: LoadBalancer
+      port: 32222
+  replicas: 3
+  service:
+    type: DataGrid
+    sites:
+      local: {{ item.local }}
+      locations: {{ item.locations }}
+  logging:
+    categories:
+      org.jgroups.protocols.TCP: error
+      org.jgroups.protocols.relay.RELAY2: error
