@@ -1,14 +1,16 @@
 apiVersion: infinispan.org/v1
 kind: Infinispan
 metadata:
-  name: {{ item.clusterName }}
-  namespace: {{ item.namespace }}
+  name: {{ common_cluster_name }}
+  namespace: {{ common_namespace }}
 spec:
   security:
     endpointAuthentication: false
+    endpointEncryption:
+      clientCert: None
+      type: None    
   expose:
-      type: LoadBalancer
-      port: 32222
+      type: Route
   replicas: 3
   service:
     type: DataGrid

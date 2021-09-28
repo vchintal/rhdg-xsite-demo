@@ -1,18 +1,19 @@
 common_cluster_name: rhdg-cluster
 common_namespace: rhdg-xsite-demo
 common_secret_name: other-site-sa-token
-common_rhdg_expose_type: NodePort
+common_rhdg_expose_type: LoadBalancer
 common_rhdg_expose_port: 32222
-site1_ocp_api_host: api.cluster-r929p.r929p.sandbox1367.opentlc.com
-site2_ocp_api_host: api.cluster-dmvvq.dmvvq.sandbox916.opentlc.com
+common_cache_name: http-session-cache
+site1_ocp_api_host: api.ocp4.example1.com
+site2_ocp_api_host: api.ocp4.example2.com
 site1_ocp_api_url: "https://{{site1_ocp_api_host}}:6443"
 site2_ocp_api_url: "https://{{site2_ocp_api_host}}:6443"
 site1:
-  ocp_api_key: "sha256~WVPdxoPLpaRH78tmsu9jg-TKou_X6Tr_Lhtiv-sRGeg"
+  ocp_api_token: "sha256~..."
   local:
     name: site1
     expose:
-      type: LoadBalancer
+      type: "{{ common_rhdg_expose_type }}"
       port: "{{ common_rhdg_expose_port }}"
   locations:
     - name: site2
@@ -21,11 +22,11 @@ site1:
       url: "openshift://{{ site2_ocp_api_host }}:6443"
       secretName: "{{ common_secret_name }}"
 site2:
-  ocp_api_key: "sha256~U5_OBk7pD1HKOLPntbSrCffijggAAP67P8V61nYkiQs"
+  ocp_api_token: "sha256~..."
   local:
     name: site2
     expose:
-      type: LoadBalancer
+      type: "{{ common_rhdg_expose_type }}"
       port: "{{ common_rhdg_expose_port }}"
   locations:
     - name: site1

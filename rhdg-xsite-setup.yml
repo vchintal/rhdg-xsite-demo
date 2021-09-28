@@ -11,8 +11,8 @@
         validate_certs: false
         definition: "{{ lookup('template', 'namespace.yml.j2') | from_yaml }}"
       loop:
-        - {name: "{{ site2.locations[0].namespace }}", host: "{{ site1_ocp_api_url }}", api_key: "{{ site1.ocp_api_key }}"}
-        - {name: "{{ site1.locations[0].namespace }}", host: "{{ site2_ocp_api_url }}", api_key: "{{ site2.ocp_api_key }}"}
+        - {host: "{{ site1_ocp_api_url }}", api_key: "{{ site1.ocp_api_token }}"}
+        - {host: "{{ site2_ocp_api_url }}", api_key: "{{ site2.ocp_api_token }}"}
 
     - name: Create the site service account in the given namespace
       community.kubernetes.k8s:
@@ -22,8 +22,8 @@
         validate_certs: false
         definition: "{{ lookup('template', 'serviceaccount.yml.j2') | from_yaml }}"
       loop:
-        - {name: "{{ site1.local.name }}", host: "{{ site1_ocp_api_url }}", api_key: "{{ site1.ocp_api_key }}", namespace: "{{ site2.locations[0].namespace }}"}
-        - {name: "{{ site2.local.name }}", host: "{{ site2_ocp_api_url }}", api_key: "{{ site2.ocp_api_key }}", namespace: "{{ site1.locations[0].namespace }}"}
+        - {name: "{{ site1.local.name }}", host: "{{ site1_ocp_api_url }}", api_key: "{{ site1.ocp_api_token }}"}
+        - {name: "{{ site2.local.name }}", host: "{{ site2_ocp_api_url }}", api_key: "{{ site2.ocp_api_token }}"}
       register: service_accounts
 
     - name: Get the site1 sa secret name
@@ -50,11 +50,11 @@
       community.kubernetes.k8s_info:
         api_version: v1
         host: "{{ site1_ocp_api_url }}"
-        api_key: "{{ site1.ocp_api_key }}"
+        api_key: "{{ site1.ocp_api_token }}"
         validate_certs: false
         kind: Secret
         name: "{{ site1_sa_token_secret }}"
-        namespace: "{{ site2.locations[0].namespace }}"
+        namespace: "{{ common_namespace }}"
         wait: true
       register: site1_sa_token_secret_json
 
@@ -63,10 +63,10 @@
         api_version: v1
         host: "{{ site2_ocp_api_url }}"
         validate_certs: false
-        api_key: "{{ site2.ocp_api_key }}"
+        api_key: "{{ site2.ocp_api_token }}"
         kind: Secret
         name: "{{ site2_sa_token_secret }}"
-        namespace: "{{ site1.locations[0].namespace }}"
+        namespace: "{{ common_namespace }}"
         wait: true
       register: site2_sa_token_secret_json
 
@@ -103,8 +103,8 @@
         definition: "{{ lookup('template', 'secret.yml.j2') | from_yaml }}"
         wait: true
       loop:
-        - {namespace: "{{ site2.locations[0].namespace }}", name: "{{ site2.locations[0].secretName }}", token: "{{ site2_sa_token }}", host: "{{ site1_ocp_api_url }}", api_key: "{{ site1.ocp_api_key }}"}
-        - {namespace: "{{ site1.locations[0].namespace }}", name: "{{ site1.locations[0].secretName }}", token: "{{ site1_sa_token }}", host: "{{ site2_ocp_api_url }}", api_key: "{{ site2.ocp_api_key }}"}
+        - {token: "{{ site2_sa_token }}", host: "{{ site1_ocp_api_url }}", api_key: "{{ site1.ocp_api_token }}"}
+        - {token: "{{ site1_sa_token }}", host: "{{ site2_ocp_api_url }}", api_key: "{{ site2.ocp_api_token }}"}
 
     - name: Apply view role to the service accounts
       community.kubernetes.k8s:
@@ -115,8 +115,8 @@
         definition: "{{ lookup('template', 'clusterroleview.yml.j2') | from_yaml }}"
         wait: true
       loop:
-        - {name: "{{ site1.local.name }}", host: "{{ site1_ocp_api_url }}", api_key: "{{ site1.ocp_api_key }}", namespace: "{{ site2.locations[0].namespace }}"}
-        - {name: "{{ site2.local.name }}", host: "{{ site2_ocp_api_url }}", api_key: "{{ site2.ocp_api_key }}", namespace: "{{ site1.locations[0].namespace }}"}
+        - {name: "{{ site1.local.name }}", host: "{{ site1_ocp_api_url }}", api_key: "{{ site1.ocp_api_token }}"}
+        - {name: "{{ site2.local.name }}", host: "{{ site2_ocp_api_url }}", api_key: "{{ site2.ocp_api_token }}"}
 
     - name: Apply cluster-reader role to the service accounts
       community.kubernetes.k8s:
@@ -127,8 +127,8 @@
         definition: "{{ lookup('template', 'clusterroleclusterreader.yml.j2') | from_yaml }}"
         wait: true
       loop:
-        - {name: "{{ site1.local.name }}", host: "{{ site1_ocp_api_url }}", api_key: "{{ site1.ocp_api_key }}", namespace: "{{ site2.locations[0].namespace }}"}
-        - {name: "{{ site2.local.name }}", host: "{{ site2_ocp_api_url }}", api_key: "{{ site2.ocp_api_key }}", namespace: "{{ site1.locations[0].namespace }}"}
+        - {name: "{{ site1.local.name }}", host: "{{ site1_ocp_api_url }}", api_key: "{{ site1.ocp_api_token }}"}
+        - {name: "{{ site2.local.name }}", host: "{{ site2_ocp_api_url }}", api_key: "{{ site2.ocp_api_token }}"}
 
     - name: Deploy datagrid operator on both clusters
       community.kubernetes.k8s:
@@ -139,8 +139,8 @@
         definition: "{{ lookup('template', 'subscription.yml.j2') | from_yaml }}"
         wait: true
       loop:
-        - {host: "{{ site1_ocp_api_url }}", api_key: "{{ site1.ocp_api_key }}"}
-        - {host: "{{ site2_ocp_api_url }}", api_key: "{{ site2.ocp_api_key }}"}
+        - {host: "{{ site1_ocp_api_url }}", api_key: "{{ site1.ocp_api_token }}"}
+        - {host: "{{ site2_ocp_api_url }}", api_key: "{{ site2.ocp_api_token }}"}
 
     - name: Deploy Infinispan CR
       community.kubernetes.k8s:
@@ -151,5 +151,41 @@
         definition: "{{ lookup('template', 'infinispan-cr.yml.j2') | from_yaml }}"
         wait: true
       loop:
-        - {host: "{{ site1_ocp_api_url }}", api_key: "{{ site1.ocp_api_key }}", namespace: "{{ site2.locations[0].namespace }}", clusterName: "{{ site2.locations[0].clusterName }}", local: "{{ site1.local }}", locations: "{{ site1.locations }}"}
-        - {host: "{{ site2_ocp_api_url }}", api_key: "{{ site2.ocp_api_key }}", namespace: "{{ site1.locations[0].namespace }}", clusterName: "{{ site1.locations[0].clusterName }}", local: "{{ site2.local }}", locations: "{{ site2.locations }}"}
+        - {host: "{{ site1_ocp_api_url }}", api_key: "{{ site1.ocp_api_token }}", local: "{{ site1.local }}", locations: "{{ site1.locations }}"}
+        - {host: "{{ site2_ocp_api_url }}", api_key: "{{ site2.ocp_api_token }}", local: "{{ site2.local }}", locations: "{{ site2.locations }}"}
+
+    - name: Deploy Infinispan Cache
+      community.kubernetes.k8s:
+        state: present
+        host: "{{ item.host }}"
+        api_key: "{{ item.api_key }}"
+        validate_certs: false
+        definition: "{{ lookup('template', 'infinispan-cache.yml.j2') | from_yaml }}"
+        wait: true
+      loop:
+        - {host: "{{ site1_ocp_api_url }}", api_key: "{{ site1.ocp_api_token }}", site: "{{ site2.local.name }}"}
+        - {host: "{{ site2_ocp_api_url }}", api_key: "{{ site2.ocp_api_token }}", site: "{{ site1.local.name }}"}
+
+    - name: Deploy the client webapp
+      community.kubernetes.k8s:
+        state: present
+        host: "{{ item.host }}"
+        api_key: "{{ item.api_key }}"
+        validate_certs: false
+        definition: "{{ lookup('template', 'session-remote-store.yml.j2') | from_yaml }}"
+        wait: true
+      loop:
+        - {host: "{{ site1_ocp_api_url }}", api_key: "{{ site1.ocp_api_token }}"}
+        - {host: "{{ site2_ocp_api_url }}", api_key: "{{ site2.ocp_api_token }}"}
+
+    - name: Deploy the client webapp's NLB
+      community.kubernetes.k8s:
+        state: present
+        host: "{{ item.host }}"
+        api_key: "{{ item.api_key }}"
+        validate_certs: false
+        definition: "{{ lookup('template', 'session-remote-store-nlb.yml.j2') | from_yaml }}"
+        wait: true
+      loop:
+        - {host: "{{ site1_ocp_api_url }}", api_key: "{{ site1.ocp_api_token }}"}
+        - {host: "{{ site2_ocp_api_url }}", api_key: "{{ site2.ocp_api_token }}"}
