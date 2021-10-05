@@ -3,52 +3,52 @@ items:
 - apiVersion: v1
   kind: Service
   metadata:
-    name: session-cache
+    name: {{ webapp_deployment_name }}
     namespace: {{ common_namespace }}
   spec:
     template:
       metadata:
         labels:
-          application: session-cache
-          deploymentConfig: session-cache
-        name: session-cache  
+          application: {{ webapp_deployment_name }}
+          deploymentConfig: {{ webapp_deployment_name }}
+        name: {{ webapp_deployment_name }}  
     ports:
     - port: 8080
       protocol: TCP
       targetPort: 8080
     selector:
-      deploymentConfig: session-cache
+      deploymentConfig: {{ webapp_deployment_name }}
     sessionAffinity: None
     type: ClusterIP
 - apiVersion: v1
   kind: Service
   metadata:
-    name: session-cache-ping
+    name: {{ webapp_deployment_name }}-ping
     namespace: {{ common_namespace }}
   spec:
     template:
       metadata:
         labels:
-          application: session-cache
-          deploymentConfig: session-cache
-        name: session-cache  
+          application: {{ webapp_deployment_name }}
+          deploymentConfig: {{ webapp_deployment_name }}
+        name: {{ webapp_deployment_name }}  
     ports:
     - name: ping
       port: 8888
       protocol: TCP
       targetPort: 8888
     selector:
-      deploymentConfig: session-cache
+      deploymentConfig: {{ webapp_deployment_name }}
 - apiVersion: apps.openshift.io/v1
   kind: DeploymentConfig
   metadata:
-    name: session-cache
+    name: {{ webapp_deployment_name }}
     namespace: {{ common_namespace }}
   spec:
     replicas: 1
     revisionHistoryLimit: 10
     selector:
-      deploymentConfig: session-cache
+      deploymentConfig: {{ webapp_deployment_name }}
     strategy:
       activeDeadlineSeconds: 21600
       recreateParams:
@@ -58,18 +58,20 @@ items:
     template:
       metadata:
         labels:
-          application: session-cache
-          deploymentConfig: session-cache
-        name: session-cache
+          application: {{ webapp_deployment_name }}
+          deploymentConfig: {{ webapp_deployment_name }}
+        name: {{ webapp_deployment_name }}
       spec:
         containers:
         - env:
           - name: RHDG_CACHE_NAME
             value: {{ common_cache_name }}
+          - name: RHDG_SITE_NAME
+            value: {{ item.site_name }}  
           - name: JGROUPS_PING_PROTOCOL
             value: dns.DNS_PING
           - name: OPENSHIFT_DNS_PING_SERVICE_NAME
-            value: session-cache-ping
+            value: {{ webapp_deployment_name }}-ping
           - name: OPENSHIFT_DNS_PING_SERVICE_PORT
             value: "8888"
           - name: MQ_CLUSTER_PASSWORD
@@ -82,7 +84,7 @@ items:
             value: "false"
           - name: ENABLE_GENERATE_DEFAULT_DATASOURCE
             value: "false"
-          image: session-cache
+          image: {{ webapp_deployment_name }}
           imagePullPolicy: Always
           livenessProbe:
             exec:
@@ -95,7 +97,7 @@ items:
             periodSeconds: 10
             successThreshold: 1
             timeoutSeconds: 1
-          name: session-cache
+          name: {{ webapp_deployment_name }}
           ports:
           - containerPort: 8778
             name: jolokia
@@ -132,31 +134,31 @@ items:
     - imageChangeParams:
         automatic: true
         containerNames:
-        - session-cache
+        - {{ webapp_deployment_name }}
         from:
           kind: ImageStreamTag
-          name: session-cache:latest
+          name: {{ webapp_deployment_name }}:latest
           namespace: {{ common_namespace }}
       type: ImageChange
     - type: ConfigChange
 - apiVersion: build.openshift.io/v1
   kind: BuildConfig
   metadata:
-    name: session-cache
+    name: {{ webapp_deployment_name }}
     namespace: {{ common_namespace }}
   spec:
     template:
       metadata:
         labels:
-          application: session-cache
-          deploymentConfig: session-cache
-        name: session-cache  
+          application: {{ webapp_deployment_name }}
+          deploymentConfig: {{ webapp_deployment_name }}
+        name: {{ webapp_deployment_name }}  
     failedBuildsHistoryLimit: 5
     nodeSelector: null
     output:
       to:
         kind: ImageStreamTag
-        name: session-cache:latest
+        name: {{ webapp_deployment_name }}:latest
     postCommit: {}
     resources: {}
     runPolicy: Serial
@@ -171,7 +173,7 @@ items:
       images:
       - from:
           kind: ImageStreamTag
-          name: session-cache-build-artifacts:latest
+          name: {{ webapp_deployment_name }}-build-artifacts:latest
         paths:
         - destinationDir: .
           sourcePath: /s2i-output/server/
@@ -189,35 +191,35 @@ items:
     - imageChange:
         from:
           kind: ImageStreamTag
-          name: session-cache-build-artifacts:latest
-        lastTriggeredImageID: image-registry.openshift-image-registry.svc:5000/demo/session-cache-build-artifacts@sha256:13421068c185671c344b5b0821657072186005d21b0c3ff8d8ebcb004cb507d8
+          name: {{ webapp_deployment_name }}-build-artifacts:latest
+        lastTriggeredImageID: image-registry.openshift-image-registry.svc:5000/demo/{{ webapp_deployment_name }}-build-artifacts@sha256:13421068c185671c344b5b0821657072186005d21b0c3ff8d8ebcb004cb507d8
       type: ImageChange
     - type: ConfigChange
 - apiVersion: build.openshift.io/v1
   kind: BuildConfig
   metadata:
-    name: session-cache-build-artifacts
+    name: {{ webapp_deployment_name }}-build-artifacts
     namespace: {{ common_namespace }}
   spec:
     template:
       metadata:
         labels:
-          application: session-cache
-          deploymentConfig: session-cache
-        name: session-cache  
+          application: {{ webapp_deployment_name }}
+          deploymentConfig: {{ webapp_deployment_name }}
+        name: {{ webapp_deployment_name }}  
     failedBuildsHistoryLimit: 5
     nodeSelector: null
     output:
       to:
         kind: ImageStreamTag
-        name: session-cache-build-artifacts:latest
+        name: {{ webapp_deployment_name }}-build-artifacts:latest
     postCommit: {}
     resources: {}
     runPolicy: Serial
     source:
       git:
-        ref: master
-        uri: https://github.com/vchintal/session-remote-store
+        ref: main
+        uri: {{ webapp_deployment_src_url }}
       type: Git
     strategy:
       sourceStrategy:
@@ -250,48 +252,48 @@ items:
 - apiVersion: image.openshift.io/v1
   kind: ImageStream
   metadata:
-    name: session-cache
+    name: {{ webapp_deployment_name }}
     namespace: {{ common_namespace }}
   spec:
     template:
       metadata:
         labels:
-          application: session-cache
-          deploymentConfig: session-cache
-        name: session-cache  
+          application: {{ webapp_deployment_name }}
+          deploymentConfig: {{ webapp_deployment_name }}
+        name: {{ webapp_deployment_name }}  
     lookupPolicy:
       local: false
   status:
-    dockerImageRepository: image-registry.openshift-image-registry.svc:5000/demo/session-cache
+    dockerImageRepository: image-registry.openshift-image-registry.svc:5000/demo/{{ webapp_deployment_name }}
 - apiVersion: image.openshift.io/v1
   kind: ImageStream
   metadata:
-    name: session-cache-build-artifacts
+    name: {{ webapp_deployment_name }}-build-artifacts
     namespace: {{ common_namespace }}
   spec:
     template:
       metadata:
         labels:
-          application: session-cache
-          deploymentConfig: session-cache
-        name: session-cache  
+          application: {{ webapp_deployment_name }}
+          deploymentConfig: {{ webapp_deployment_name }}
+        name: {{ webapp_deployment_name }}  
     lookupPolicy:
       local: false
 - apiVersion: route.openshift.io/v1
   kind: Route
   metadata:
-    name: session-cache
+    name: {{ webapp_deployment_name }}
     namespace: {{ common_namespace }}
   spec:
     template:
       metadata:
         labels:
-          application: session-cache
-          deploymentConfig: session-cache
-        name: session-cache  
+          application: {{ webapp_deployment_name }}
+          deploymentConfig: {{ webapp_deployment_name }}
+        name: {{ webapp_deployment_name }}  
     to:
       kind: Service
-      name: session-cache
+      name: {{ webapp_deployment_name }}
       weight: 100
     wildcardPolicy: None
 kind: List

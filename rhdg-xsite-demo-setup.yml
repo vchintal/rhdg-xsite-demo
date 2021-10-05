@@ -14,6 +14,10 @@
         - {host: "{{ site1_ocp_api_url }}", api_key: "{{ site1.ocp_api_token }}"}
         - {host: "{{ site2_ocp_api_url }}", api_key: "{{ site2.ocp_api_token }}"}
 
+    - name: Pause before creating the service accounts
+      pause:
+        seconds: 10
+
     - name: Create the site service account in the given namespace
       community.kubernetes.k8s:
         state: present
@@ -142,6 +146,10 @@
         - {host: "{{ site1_ocp_api_url }}", api_key: "{{ site1.ocp_api_token }}"}
         - {host: "{{ site2_ocp_api_url }}", api_key: "{{ site2.ocp_api_token }}"}
 
+    - name: Pause before deploying the Infinispan CR
+      pause:
+        seconds: 20
+
     - name: Deploy Infinispan CR
       community.kubernetes.k8s:
         state: present
@@ -163,8 +171,8 @@
         definition: "{{ lookup('template', 'infinispan-cache.yml.j2') | from_yaml }}"
         wait: true
       loop:
-        - {host: "{{ site1_ocp_api_url }}", api_key: "{{ site1.ocp_api_token }}", site: "{{ site2.local.name }}"}
-        - {host: "{{ site2_ocp_api_url }}", api_key: "{{ site2.ocp_api_token }}", site: "{{ site1.local.name }}"}
+        - {host: "{{ site1_ocp_api_url }}", api_key: "{{ site1.ocp_api_token }}", backup_site_name: "{{ site2.local.name }}"}
+        - {host: "{{ site2_ocp_api_url }}", api_key: "{{ site2.ocp_api_token }}", backup_site_name: "{{ site1.local.name }}"}
 
     - name: Deploy the client webapp
       community.kubernetes.k8s:
@@ -172,11 +180,11 @@
         host: "{{ item.host }}"
         api_key: "{{ item.api_key }}"
         validate_certs: false
-        definition: "{{ lookup('template', 'session-remote-store.yml.j2') | from_yaml }}"
+        definition: "{{ lookup('template', 'rhdg-xsite-demo-webapp.yml.j2') | from_yaml }}"
         wait: true
       loop:
-        - {host: "{{ site1_ocp_api_url }}", api_key: "{{ site1.ocp_api_token }}"}
-        - {host: "{{ site2_ocp_api_url }}", api_key: "{{ site2.ocp_api_token }}"}
+        - {host: "{{ site1_ocp_api_url }}", api_key: "{{ site1.ocp_api_token }}", site_name: "{{ site1.local.name }}"}
+        - {host: "{{ site2_ocp_api_url }}", api_key: "{{ site2.ocp_api_token }}", site_name: "{{ site2.local.name }}"}
 
     - name: Deploy the client webapp's NLB
       community.kubernetes.k8s:
@@ -184,7 +192,7 @@
         host: "{{ item.host }}"
         api_key: "{{ item.api_key }}"
         validate_certs: false
-        definition: "{{ lookup('template', 'session-remote-store-nlb.yml.j2') | from_yaml }}"
+        definition: "{{ lookup('template', 'rhdg-xsite-demo-webapp-nlb.yml.j2') | from_yaml }}"
         wait: true
       loop:
         - {host: "{{ site1_ocp_api_url }}", api_key: "{{ site1.ocp_api_token }}"}

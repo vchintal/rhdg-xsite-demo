@@ -3,7 +3,9 @@ common_namespace: rhdg-xsite-demo
 common_secret_name: other-site-sa-token
 common_rhdg_expose_type: LoadBalancer
 common_rhdg_expose_port: 32222
-common_cache_name: http-session-cache
+common_cache_name: user-xsite-cache
+webapp_deployment_name: rhdg-xsite-demo-webapp
+webapp_deployment_src_url: "https://github.com/vchintal/{{ webapp_deployment_name }}"
 site1_ocp_api_host: api.ocp4.example1.com
 site2_ocp_api_host: api.ocp4.example2.com
 site1_ocp_api_url: "https://{{site1_ocp_api_host}}:6443"

@@ -10,6 +10,6 @@ spec:
     <distributed-cache name="{{ common_cache_name }}" mode="SYNC" remote-timeout="17500" statistics="true">
         <state-transfer timeout="30000"/>
         <backups>
-            <backup site="{{ item.site }}" strategy="SYNC" />
+            <backup site="{{ item.backup_site_name }}" strategy="SYNC" />
         </backups>
     </distributed-cache>
