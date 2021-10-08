@@ -8,10 +8,9 @@ webapp_deployment_name: rhdg-xsite-demo-webapp
 webapp_deployment_src_url: "https://github.com/vchintal/{{ webapp_deployment_name }}"
 site1_ocp_api_host: api.ocp4.example1.com
 site2_ocp_api_host: api.ocp4.example2.com
-site1_ocp_api_url: "https://{{site1_ocp_api_host}}:6443"
-site2_ocp_api_url: "https://{{site2_ocp_api_host}}:6443"
 site1:
   ocp_api_token: "sha256~..."
+  ocp_api_url: "https://{{site1_ocp_api_host}}:6443"
   local:
     name: site1
     expose:
@@ -25,6 +24,7 @@ site1:
       secretName: "{{ common_secret_name }}"
 site2:
   ocp_api_token: "sha256~..."
+  ocp_api_url: "https://{{site2_ocp_api_host}}:6443"
   local:
     name: site2
     expose:

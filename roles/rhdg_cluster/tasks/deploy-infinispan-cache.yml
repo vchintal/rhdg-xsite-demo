@@ -1,0 +1,7 @@
+- name: Deploy Infinispan Cache
+  community.kubernetes.k8s:
+    state: present
+    host: "{{ item.host }}"
+    api_key: "{{ item.api_key }}"
+    validate_certs: false
+    definition: "{{ lookup('template', 'infinispan-cache.yml.j2') | from_yaml }}"

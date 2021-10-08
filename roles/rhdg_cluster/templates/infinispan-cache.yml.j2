@@ -1,7 +1,7 @@
 apiVersion: infinispan.org/v2alpha1
 kind: Cache
 metadata:
-  name: http-session-cache
+  name: {{ common_cache_name }}
   namespace: {{ common_namespace }}
 spec:
   clusterName: {{ common_cluster_name }}
@@ -10,6 +10,6 @@ spec:
     <distributed-cache name="{{ common_cache_name }}" mode="SYNC" remote-timeout="17500" statistics="true">
         <state-transfer timeout="30000"/>
         <backups>
-            <backup site="{{ item.backup_site_name }}" strategy="SYNC" />
+            <backup site="{{ item.backup_site_name }}" strategy="ASYNC" />
         </backups>
     </distributed-cache>

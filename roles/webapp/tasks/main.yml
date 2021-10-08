@@ -1,0 +1,93 @@
+- name: Deploy the webapp service
+  community.kubernetes.k8s:
+    state: present
+    host: "{{ item.host }}"
+    api_key: "{{ item.api_key }}"
+    validate_certs: false
+    definition: "{{ lookup('template', 'service.yml.j2') | from_yaml }}"
+  loop:
+    - {host: "{{ site1.ocp_api_url }}", api_key: "{{ site1.ocp_api_token }}"}
+    - {host: "{{ site2.ocp_api_url }}", api_key: "{{ site2.ocp_api_token }}"}
+
+- name: Deploy the webapp ping service
+  community.kubernetes.k8s:
+    state: present
+    host: "{{ item.host }}"
+    api_key: "{{ item.api_key }}"
+    validate_certs: false
+    definition: "{{ lookup('template', 'ping-service.yml.j2') | from_yaml }}"
+  loop:
+    - {host: "{{ site1.ocp_api_url }}", api_key: "{{ site1.ocp_api_token }}"}
+    - {host: "{{ site2.ocp_api_url }}", api_key: "{{ site2.ocp_api_token }}"}
+
+- name: Deploy the webapp route
+  community.kubernetes.k8s:
+    state: present
+    host: "{{ item.host }}"
+    api_key: "{{ item.api_key }}"
+    validate_certs: false
+    definition: "{{ lookup('template', 'route.yml.j2') | from_yaml }}"
+  loop:
+    - {host: "{{ site1.ocp_api_url }}", api_key: "{{ site1.ocp_api_token }}"}
+    - {host: "{{ site2.ocp_api_url }}", api_key: "{{ site2.ocp_api_token }}"}
+
+- name: Deploy the client webapp's NLB
+  community.kubernetes.k8s:
+    state: present
+    host: "{{ item.host }}"
+    api_key: "{{ item.api_key }}"
+    validate_certs: false
+    definition: "{{ lookup('template', 'network-loadbalancer.yml.j2') | from_yaml }}"
+  loop:
+    - {host: "{{ site1.ocp_api_url }}", api_key: "{{ site1.ocp_api_token }}"}
+    - {host: "{{ site2.ocp_api_url }}", api_key: "{{ site2.ocp_api_token }}"}
+
+- name: Deploy the client webapp imagestream
+  community.kubernetes.k8s:
+    state: present
+    host: "{{ item.host }}"
+    api_key: "{{ item.api_key }}"
+    validate_certs: false
+    definition: "{{ lookup('template', 'imagestream.yml.j2') | from_yaml }}"
+  loop:
+    - {host: "{{ site1.ocp_api_url }}", api_key: "{{ site1.ocp_api_token }}"}
+    - {host: "{{ site2.ocp_api_url }}", api_key: "{{ site2.ocp_api_token }}"}
+
+- name: Deploy the client webapp build-artifacts imagestream
+  community.kubernetes.k8s:
+    state: present
+    host: "{{ item.host }}"
+    api_key: "{{ item.api_key }}"
+    validate_certs: false
+    definition: "{{ lookup('template', 'build-artifacts-imagestream.yml.j2') | from_yaml }}"
+  loop:
+    - {host: "{{ site1.ocp_api_url }}", api_key: "{{ site1.ocp_api_token }}"}
+    - {host: "{{ site2.ocp_api_url }}", api_key: "{{ site2.ocp_api_token }}"}
+
+- name: Deploy the client webapp buildconfig
+  community.kubernetes.k8s:
+    state: present
+    host: "{{ item.host }}"
+    api_key: "{{ item.api_key }}"
+    validate_certs: false
+    definition: "{{ lookup('template', 'buildconfig.yml.j2') | from_yaml }}"
+  loop:
+    - {host: "{{ site1.ocp_api_url }}", api_key: "{{ site1.ocp_api_token }}"}
+    - {host: "{{ site2.ocp_api_url }}", api_key: "{{ site2.ocp_api_token }}"}
+
+- name: Deploy the client webapp build-artifacts buildconfig
+  community.kubernetes.k8s:
+    state: present
+    host: "{{ item.host }}"
+    api_key: "{{ item.api_key }}"
+    validate_certs: false
+    definition: "{{ lookup('template', 'build-artifacts-buildconfig.yml.j2') | from_yaml }}"
+  loop:
+    - {host: "{{ site1.ocp_api_url }}", api_key: "{{ site1.ocp_api_token }}"}
+    - {host: "{{ site2.ocp_api_url }}", api_key: "{{ site2.ocp_api_token }}"}
+
+- name: Deploy the client webapp deploymentconfig
+  include_tasks: deploy-deploymentconfig.yml
+  loop:
+    - {host: "{{ site1.ocp_api_url }}", api_key: "{{ site1.ocp_api_token }}", site_name: "{{ site1.local.name }}"}
+    - {host: "{{ site2.ocp_api_url }}", api_key: "{{ site2.ocp_api_token }}", site_name: "{{ site2.local.name }}"}

@@ -1,0 +1,52 @@
+---
+- hosts: localhost
+  gather_facts: false
+  vars_prompt:
+    - name: site_name
+      prompt: Provide the site name you would like to restore
+      private: false
+  tasks:
+    - name: Set the site variable to the site as per the provided site name
+      set_fact:
+        site: "{{ item }}"
+      when:
+        site_name == item.local.name
+      loop:
+        - "{{ site1 }}"
+        - "{{ site2 }}"
+    - name: Set the other_site variable to the site as per the provided site name
+      set_fact:
+        other_site: "{{ item }}"
+      when:
+        site_name != item.local.name
+      loop:
+        - "{{ site1 }}"
+        - "{{ site2 }}"
+    - name: Restore RHDG Cluster
+      include_role:
+        name: rhdg_cluster
+        tasks_from: deploy-infinispan-cr
+      loop:
+        - {host: "{{ site.ocp_api_url }}", api_key: "{{ site.ocp_api_token }}", local: "{{ site.local }}", locations: "{{ site.locations }}"}
+    - name: Restore RHDG Cache
+      include_role:
+        name: rhdg_cluster
+        tasks_from: deploy-infinispan-cache
+      loop:
+        - {host: "{{ site.ocp_api_url }}", api_key: "{{ site.ocp_api_token }}", backup_site_name: "{{ site.locations[0].name }}"}
+    - name: Restore XSite Webapp
+      include_role:
+        name: webapp
+        tasks_from: deploy-deploymentconfig
+      loop:
+        - {host: "{{ site.ocp_api_url }}", api_key: "{{ site.ocp_api_token }}", site_name: "{{ site.local.name }}"}
+    - name: "Delete the ConfigMap {{ common_cluster_name }}-configuration"
+      community.kubernetes.k8s:
+        api_version: v1
+        host: "{{ other_site.ocp_api_url }}"
+        api_key: "{{ other_site.ocp_api_token }}"
+        kind: ConfigMap
+        namespace: "{{ common_namespace }}"
+        name: "{{ common_cluster_name }}-configuration"
+        state: absent
+        validate_certs: false

@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ webapp_deployment_name }}
+  namespace: {{ common_namespace }}
+spec:
+  template:
+    metadata:
+      labels:
+        application: {{ webapp_deployment_name }}
+        deploymentConfig: {{ webapp_deployment_name }}
+      name: {{ webapp_deployment_name }}  
+  ports:
+  - port: 8080
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    deploymentConfig: {{ webapp_deployment_name }}
+  sessionAffinity: None
+  type: ClusterIP

@@ -1,0 +1,14 @@
+- name: Deploy Infinispan CR
+  community.kubernetes.k8s:
+    state: present
+    host: "{{ item.host }}"
+    api_key: "{{ item.api_key }}"
+    validate_certs: false
+    definition: "{{ lookup('template', 'infinispan-cr.yml.j2') | from_yaml }}"
+    wait: true
+    wait_timeout: 300
+    wait_condition:
+      status: "True"
+      type: WellFormed
+  async: 300
+  poll: 0

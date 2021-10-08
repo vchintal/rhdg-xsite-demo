@@ -1,0 +1,54 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: {{ webapp_deployment_name }}-build-artifacts
+  namespace: {{ common_namespace }}
+spec:
+  template:
+    metadata:
+      labels:
+        application: {{ webapp_deployment_name }}
+        deploymentConfig: {{ webapp_deployment_name }}
+      name: {{ webapp_deployment_name }}  
+  failedBuildsHistoryLimit: 5
+  nodeSelector: null
+  output:
+    to:
+      kind: ImageStreamTag
+      name: {{ webapp_deployment_name }}-build-artifacts:latest
+  postCommit: {}
+  resources: {}
+  runPolicy: Serial
+  source:
+    git:
+      ref: main
+      uri: {{ webapp_deployment_src_url }}
+    type: Git
+  strategy:
+    sourceStrategy:
+      env:
+      - name: MAVEN_MIRROR_URL
+      - name: MAVEN_ARGS_APPEND
+        value: -Dcom.redhat.xpaas.repo.jbossorg
+      - name: GALLEON_PROVISION_LAYERS
+      - name: GALLEON_PROVISION_DEFAULT_FAT_SERVER
+        value: "true"
+      - name: ARTIFACT_DIR
+      forcePull: true
+      from:
+        kind: ImageStreamTag
+        name: jboss-eap73-openshift:7.3
+        namespace: openshift
+      incremental: true
+    type: Source
+  successfulBuildsHistoryLimit: 5
+  triggers:
+  - github:
+      secret: yu1WBrkD
+    type: GitHub
+  - generic:
+      secret: dyQkLer3
+    type: Generic
+  - imageChange:
+    type: ImageChange
+  - type: ConfigChange

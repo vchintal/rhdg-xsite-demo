@@ -1,0 +1,54 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: {{ webapp_deployment_name }}
+  namespace: {{ common_namespace }}
+spec:
+  template:
+    metadata:
+      labels:
+        application: {{ webapp_deployment_name }}
+        deploymentConfig: {{ webapp_deployment_name }}
+      name: {{ webapp_deployment_name }}  
+  failedBuildsHistoryLimit: 5
+  nodeSelector: null
+  output:
+    to:
+      kind: ImageStreamTag
+      name: {{ webapp_deployment_name }}:latest
+  postCommit: {}
+  resources: {}
+  runPolicy: Serial
+  source:
+    dockerfile: |-
+      FROM jboss-eap73-runtime-openshift:7.3
+      COPY /server $JBOSS_HOME
+      USER root
+      RUN chown -R jboss:root $JBOSS_HOME && chmod -R ug+rwX $JBOSS_HOME
+      USER jboss
+      CMD $JBOSS_HOME/bin/openshift-launch.sh
+    images:
+    - from:
+        kind: ImageStreamTag
+        name: {{ webapp_deployment_name }}-build-artifacts:latest
+      paths:
+      - destinationDir: .
+        sourcePath: /s2i-output/server/
+    type: Dockerfile
+  strategy:
+    dockerStrategy:
+      from:
+        kind: ImageStreamTag
+        name: jboss-eap73-runtime-openshift:7.3
+        namespace: openshift
+      imageOptimizationPolicy: SkipLayers
+    type: Docker
+  successfulBuildsHistoryLimit: 5
+  triggers:
+  - imageChange:
+      from:
+        kind: ImageStreamTag
+        name: {{ webapp_deployment_name }}-build-artifacts:latest
+      lastTriggeredImageID: image-registry.openshift-image-registry.svc:5000/demo/{{ webapp_deployment_name }}-build-artifacts@sha256:13421068c185671c344b5b0821657072186005d21b0c3ff8d8ebcb004cb507d8
+    type: ImageChange
+  - type: ConfigChange

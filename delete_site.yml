@@ -1,0 +1,49 @@
+---
+- hosts: localhost
+  gather_facts: false
+  vars_prompt:
+    - name: site_name
+      prompt: Provide the site name you would like to backup and delete
+      private: false
+  tasks:
+    - name: Set the site varibale to the site as per the provided site name
+      set_fact:
+        site: "{{ item }}"
+      when:
+        site_name == item.local.name
+      loop:
+        - "{{ site1 }}"
+        - "{{ site2 }}"
+
+    - name: "Delete the DeploymentConfig {{ webapp_deployment_name }}"
+      community.kubernetes.k8s:
+        api_version: v1
+        host: "{{ site.ocp_api_url }}"
+        api_key: "{{ site.ocp_api_token }}"
+        kind: DeploymentConfig
+        namespace: "{{ common_namespace }}"
+        name: "{{ webapp_deployment_name }}"
+        state: absent
+        validate_certs: false
+
+    - name: "Delete the Infinispan cluster {{ common_cluster_name }}"
+      community.kubernetes.k8s:
+        api_version: v1
+        host: "{{ site.ocp_api_url }}"
+        api_key: "{{ site.ocp_api_token }}"
+        kind: Infinispan
+        namespace: "{{ common_namespace }}"
+        name: "{{ common_cluster_name }}"
+        state: absent
+        validate_certs: false
+
+    - name: "Delete the Infinispan cache {{ common_cache_name }}"
+      community.kubernetes.k8s:
+        api_version: infinispan.org/v2alpha1
+        host: "{{ site.ocp_api_url }}"
+        api_key: "{{ site.ocp_api_token }}"
+        kind: Cache
+        namespace: "{{ common_namespace }}"
+        name: "{{ common_cache_name }}"
+        state: absent
+        validate_certs: false

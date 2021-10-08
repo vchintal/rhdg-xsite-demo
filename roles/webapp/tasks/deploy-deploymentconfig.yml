@@ -1,0 +1,8 @@
+- name: Deploy the client webapp deploymentconfig
+  community.kubernetes.k8s:
+    state: present
+    host: "{{ item.host }}"
+    api_key: "{{ item.api_key }}"
+    validate_certs: false
+    definition: "{{ lookup('template', 'deploymentconfig.yml.j2') | from_yaml }}"
+    wait: true

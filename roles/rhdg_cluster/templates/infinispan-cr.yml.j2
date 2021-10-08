@@ -11,7 +11,9 @@ spec:
       type: None    
   expose:
       type: Route
-  replicas: 3
+  replicas: 2
+  container:
+    cpu: "4000m"    
   service:
     type: DataGrid
     sites:

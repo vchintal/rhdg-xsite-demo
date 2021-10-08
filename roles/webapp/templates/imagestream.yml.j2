@@ -1,0 +1,16 @@
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: {{ webapp_deployment_name }}
+  namespace: {{ common_namespace }}
+spec:
+  template:
+    metadata:
+      labels:
+        application: {{ webapp_deployment_name }}
+        deploymentConfig: {{ webapp_deployment_name }}
+      name: {{ webapp_deployment_name }}  
+  lookupPolicy:
+    local: false
+status:
+  dockerImageRepository: image-registry.openshift-image-registry.svc:5000/demo/{{ webapp_deployment_name }}

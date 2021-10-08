@@ -1,0 +1,10 @@
+---
+- hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Setup Red Hat Data Grid
+      import_role:
+        name: rhdg_cluster
+    - name: Setup XSite web application
+      import_role:
+        name: webapp

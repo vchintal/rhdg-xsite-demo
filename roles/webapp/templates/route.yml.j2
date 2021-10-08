@@ -1,0 +1,17 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: {{ webapp_deployment_name }}
+  namespace: {{ common_namespace }}
+spec:
+  template:
+    metadata:
+      labels:
+        application: {{ webapp_deployment_name }}
+        deploymentConfig: {{ webapp_deployment_name }}
+      name: {{ webapp_deployment_name }}  
+  to:
+    kind: Service
+    name: {{ webapp_deployment_name }}
+    weight: 100
+  wildcardPolicy: None
