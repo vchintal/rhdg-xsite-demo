@@ -1,7 +1,7 @@
 kind: Service
 apiVersion: v1
 metadata:
-  name: session-remote-store-nlb
+  name: {{ webapp_deployment_name }}-nlb
   namespace: {{ common_namespace }}
 spec:
   ports:
@@ -9,5 +9,5 @@ spec:
       port: 80
       targetPort: 8080
   selector:
-    application: session-cache
+    application: {{ webapp_deployment_name }}
   type: LoadBalancer 
